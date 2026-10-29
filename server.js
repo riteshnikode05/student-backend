@@ -8,6 +8,7 @@ try {
 
 const express = require('express');
 const cors = require('cors');
+const mongoose = require('mongoose');
 const connectDB = require('./config/database');
 const studentRoutes = require('./routes/studentRoutes');
 
@@ -20,11 +21,42 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Health Check Route
+// Service name for scalability demonstration
+const SERVICE_NAME = process.env.SERVICE_NAME || process.env.RENDER_SERVICE_NAME || 'RiteshStudentMsystem';
+
+// Root Health & Scalability Route
 app.get('/', (req, res) => {
   res.json({ 
     success: true, 
     message: 'Student API is running perfectly!',
+    service: SERVICE_NAME,
+    containerStatus: 'Healthy & Scalable',
+    tier: 'Tier 2: Application Layer (Render Cloud Container)',
+    database: mongoose.connection.readyState === 1 ? 'Connected (MongoDB Atlas)' : 'Connecting...',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Scalability Health Check Route
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    service: SERVICE_NAME,
+    uptimeSeconds: Math.floor(process.uptime()),
+    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
+  });
+});
+
+// Full System Architecture Info Route
+app.get('/api/system-info', (req, res) => {
+  res.json({
+    success: true,
+    serviceName: SERVICE_NAME,
+    architectureTier: 'Tier 2: Backend Application Layer',
+    cloudPlatform: 'Render Cloud Container',
+    scalabilityRole: 'Independent Horizontally Scaled Node',
+    databaseTier: 'Tier 3: MongoDB Atlas (studentDB -> students)',
+    uptime: `${Math.floor(process.uptime())} seconds`,
     timestamp: new Date().toISOString()
   });
 });
@@ -52,5 +84,5 @@ app.use((err, req, res, next) => {
 // Start Server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🚀 [${SERVICE_NAME}] Server running on port ${PORT}`);
 });
