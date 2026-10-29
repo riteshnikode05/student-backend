@@ -1,6 +1,10 @@
 require('dotenv').config();
 const dns = require('dns');
-dns.setServers(['8.8.8.8', '1.1.1.1']); // DNS issue fix karne ke liye
+try {
+  dns.setServers(['8.8.8.8', '1.1.1.1']);
+} catch (e) {
+  // fallback if environment restricts setting dns servers
+}
 
 const express = require('express');
 const cors = require('cors');
@@ -20,7 +24,8 @@ app.use(express.json());
 app.get('/', (req, res) => {
   res.json({ 
     success: true, 
-    message: 'Student API is running perfectly!' 
+    message: 'Student API is running perfectly!',
+    timestamp: new Date().toISOString()
   });
 });
 
@@ -32,6 +37,15 @@ app.use((req, res) => {
   res.status(404).json({ 
     success: false, 
     message: 'Route not found' 
+  });
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Unhandled Server Error:', err);
+  res.status(500).json({
+    success: false,
+    message: err.message || 'Internal Server Error'
   });
 });
 
